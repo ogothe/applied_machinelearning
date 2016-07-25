@@ -1,0 +1,50 @@
+---
+title: "course_project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Classification of Excercises
+
+This document contains a quick decription of the classification algorithm used to predict the types of excercises in the dataset provided for the final project for the Coursera course Practical Machine Learning. First we load the caret library:
+
+### Load Libraries
+```{r}
+library(caret)
+```
+Next we both the training data and the quiz data:
+
+### Load Data
+```{r}
+data <- read.csv("pml-training.csv")
+quiz_data <- read.csv("pml-testing.csv")
+```
+Now partition the data into a training and a test set so that we can cross validate our model after we create it:
+
+###Partition Data
+```{r}
+train_ind = createDataPartition(data$classe,p=0.50,list=FALSE)
+training <- data[train_ind,]
+testing <- data[-train_ind,]
+```
+
+Next we train a model. I chose method = range as it is a faster implementation of a random forest. I limited myself a few variables first and added new groups of variables until my model reached the desired accuracy. I chose to do this in order to avoid using more variables than necessary since random forest algorithms are very computationally expensive:
+
+###Train Model
+```{r}
+mod = train(training$classe~total_accel_belt+total_accel_arm+total_accel_dumbbell+total_accel_forearm+pitch_forearm+pitch_belt+pitch_dumbbell+pitch_arm+yaw_belt+yaw_forearm+yaw_dumbbell+yaw_arm,method='ranger',training)
+```
+
+Finally, we cross-validate the accuracy of the model against the test data:
+
+#Find Accuracy
+```{r}
+confusionMatrix(predict(mod,testing),testing$classe)
+```
+
+
+
+The model had an accuracy of 97%, easily beating the required 80% accuracy.
